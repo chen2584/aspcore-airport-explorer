@@ -31,18 +31,61 @@
             map.addSource("airports",
             {
                 type: "geojson",
-                data: "?handler=airports"
+                data: "?handler=airports",
+                cluster: true, // Enable clustering
+                clusterRadius: 50, // Radius of each cluster when clustering points
+                clusterMaxZoom: 6 // Max zoom to cluster points on
             });
 
             map.addLayer({
                 id: 'airport',
                 type: 'circle',
                 source: 'airports',
+                filter: ['!has', 'point_count'],
                 paint: {
                     'circle-color': '#1EF008',
                     'circle-radius': 6,
                     'circle-stroke-width': 1,
                     'circle-stroke-color': '#fff'
+                }
+            });
+
+            map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'airports',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': {
+                        property: 'point_count',
+                        type: 'interval',
+                        stops: [
+                            [0, '#41A337'],
+                            [100, '#2D7026'],
+                            [750, '#0B5703'],
+                        ]
+                    },
+                    'circle-radius': {
+                        property: 'point_count',
+                        type: 'interval',
+                        stops: [
+                            [0, 20],
+                            [100, 30],
+                            [750, 40]
+                        ]
+                    }
+                }
+            });
+
+            map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'airports',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count}',
+                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                    'text-size': 12
                 }
             });
         });
