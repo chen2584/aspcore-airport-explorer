@@ -24,6 +24,9 @@
             style: 'mapbox://styles/mapbox/light-v9'
         });
 
+        var nav = new mapboxgl.NavigationControl();
+        map.addControl(nav, 'bottom-right');
+
         map.on('load',() => {
             map.addSource("airports",
             {
