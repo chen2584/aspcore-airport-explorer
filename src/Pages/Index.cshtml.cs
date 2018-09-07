@@ -47,7 +47,7 @@ namespace AirportExplorer.Pages
                     string iateCode = reader.GetField<string>(4);
                     double latitude = reader.GetField<double>(6);
                     double longitude = reader.GetField<double>(7);
-
+                    
                     featureCollection.Features.Add(new Feature(
                         new Point(new Position(latitude, longitude)),
                         new Dictionary<string, object>

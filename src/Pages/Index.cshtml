@@ -88,6 +88,27 @@
                     'text-size': 12
                 }
             });
+
+            var popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            map.on('mouseenter', 'airport', function(e) {
+                // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = 'pointer';
+
+                // Populate the popup and set its coordinates
+                // based on the feature found.
+                popup.setLngLat(e.features[0].geometry.coordinates)
+                    .setHTML(e.features[0].properties.name)
+                    .addTo(map);
+            });
+
+            map.on('mouseleave', 'airport', function() {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+            });
         });
     </script>
 </body>
