@@ -19,16 +19,34 @@
 
     <div id='map'></div>
     <div id="info-card" class="absolute pin-t pin-l mt-4 ml-4 rounded shadow-lg bg-white" style="max-width: 400px; display: none;">
-        <div>
+        <div class="overflow-hidden" style="height:200px;">
             <span class="absolute pin-t pin-r px-4 py-3">
                 <i id="info-card-close-button" class="fa fa-times" role="button" aria-hidden="true"></i>
             </span>
-            <img class="" src="http://via.placeholder.com/400x200?text=No+Picture+Found"/>
+            <img id="airport-image" src="http://via.placeholder.com/400x200?text=Loading..." />
         </div>
         <div class="px-6 py-4">
             <div id="airport-name" class="font-bold text-l">Airport Name goes here</div>
+            
+            <div id="more-info" class="mt-8">
+                <div class="flex mb-4">
+                    <div class="w-10"><i class="fa fa-map-marker" aria-hidden="true"></i></div>
+                    <div id="airport-address" class="font-medium text-l mb-2 w-full"></div>
+                </div>
+
+                <div class="flex mb-4">
+                    <div class="w-10"><i class="fa fa-phone" aria-hidden="true"></i></div>
+                    <div id="airport-phone" class="font-medium text-l mb-2 w-full"></div>
+                </div>
+
+                <div class="flex mb-4">
+                    <div class="w-10"><i class="fa fa-link" aria-hidden="true"></i></div>
+                    <div id="airport-website" class="font-medium text-l mb-2 w-full"></div>
+                </div>
+            </div>
         </div>
     </div>
+
     <script src='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.js'></script>
     <script>
         mapboxgl.accessToken = '@Model.MapboxAccessToken';
@@ -126,12 +144,38 @@
             map.on('click', 'airport', e => {
                 var name = e.features[0].properties.name;
                 var iataCode = e.features[0].properties.iataCode;
+                var lat = e.features[0].geometry.coordinates[1];
+                var lng = e.features[0].geometry.coordinates[0];
 
                 // Display airport info
                 document.querySelector('#airport-name').innerText = name + " (" + iataCode + ")";
+                document.querySelector('#airport-image').src = 'http://via.placeholder.com/400x200?text=Loading...';
+
+                // Hide more info at first
+                document.querySelector('#more-info').style.display = 'none';
 
                 // Ensure the info box is visible
                 document.querySelector('#info-card').style.display = '';
+
+                fetch(`/?handler=airportdetail&name=${name}&latitude=${lat}&longitude=${lng}`)
+                    .then(blob => blob.json())
+                    .then(data => {
+                        // Set airport properties
+                        if (data.photo)
+                            document.querySelector('#airport-image').src = 'data:image/png;base64,' + data.photo;
+                        else
+                            document.querySelector('#airport-image').src =
+                                'http://via.placeholder.com/400x200?text=No+Image+Found';
+                        document.querySelector('#airport-address').innerText = data.formattedAddress || '-';
+                        document.querySelector('#airport-phone').innerText = data.phoneNumber || '-';
+                        document.querySelector('#airport-website').innerText = data.website || '-';
+
+                        // display more info
+                        document.querySelector('#more-info').style.display = '';
+                    })
+                    .catch(error => {
+                        document.querySelector('#airport-image').src = 'http://via.placeholder.com/400x200?text=Error+while+loading+data';
+                    });
             });
         });
 
