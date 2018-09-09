@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CsvHelper;
 using CsvHelper.Configuration;
 using GeoJSON.Net.Feature;
@@ -41,13 +42,17 @@ namespace AirportExplorer.Pages
             {
 
                 var featureCollection = new FeatureCollection();
+
+                var headers = reader.Context.HeaderRecord;
+
+
                 while (reader.Read())
                 {
                     string name = reader.GetField<string>(1);
                     string iateCode = reader.GetField<string>(4);
                     double latitude = reader.GetField<double>(6);
                     double longitude = reader.GetField<double>(7);
-                    
+
                     featureCollection.Features.Add(new Feature(
                         new Point(new Position(latitude, longitude)),
                         new Dictionary<string, object>
