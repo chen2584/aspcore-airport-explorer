@@ -17,6 +17,7 @@ using GoogleApi.Entities.Places.Photos.Request;
 using GoogleApi.Entities.Places.Search.NearBy.Request;
 using System.Threading.Tasks;
 using System;
+using MaxMind.GeoIP2;
 
 namespace AirportExplorer.Pages
 {
@@ -25,6 +26,10 @@ namespace AirportExplorer.Pages
         private readonly IHostingEnvironment _hostingEnvironment;
         public string MapboxAccessToken { get; }
         public string GoogleApiKey { get; }
+
+        public double InitialLatitude { get; set; } = 0;
+        public double InitialLongitude { get; set; } = 0;
+        public int InitialZoom { get; set; } = 1;
 
         public IndexModel(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
         {
@@ -35,6 +40,29 @@ namespace AirportExplorer.Pages
 
         public void OnGet()
         {
+            try
+            {
+                using (var reader = new DatabaseReader(Path.Combine(_hostingEnvironment.WebRootPath, "GeoLite2-City.mmdb")))
+                {
+                    // Determine the IP Address of the request
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress;
+                    // Get the city from the IP Address
+                    var city = reader.City(ipAddress);
+
+                    if (city?.Location?.Latitude != null && city?.Location?.Longitude != null)
+                    {
+                        InitialLatitude = city.Location.Latitude.Value;
+                        InitialLongitude = city.Location.Longitude.Value;
+                        InitialZoom = 9;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Just suppress errors. If we could not retrieve the location for whatever reason
+                // there is not reason to notify the user. We'll just simply not know their current
+                // location and won't be able to center the map on it
+            }
         }
 
         // http://0.0.0.0:5000/?handler=airports
